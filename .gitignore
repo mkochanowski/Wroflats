@@ -1,3 +1,5 @@
 venv
 .vscode
 data
+client_secret.json
+secret.json
