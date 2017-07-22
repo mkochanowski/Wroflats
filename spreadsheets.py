@@ -60,4 +60,6 @@ for file in os.listdir("data"):
                     hash_id, item_id, category, title, short_desc, full_description, thumb_image, link, price, submission_date, available_date, m2, rooms, bath, gps_link, distance, scrap_date, full_scrap, rate, favorite, comment
                 ]
                 worksheet.append_row(to_add)
+                
+        os.rename(path, path + '.done')
         break
