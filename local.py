@@ -22,18 +22,22 @@ favorite = 0
 comment = ""
 
 output = []
-output_path = 'data/gumtree-full.json'
+output_path = 'gumtree-full.json'
 working = []
+index = 0
+location = 0
 for file in os.listdir("data"):
     if file.endswith(".json"): 
         path = os.path.join('data', file)
-        print(path)
+        index += 1
+        print("{} - {}".format(index, path))
         with open(path, 'r') as outfile:
             working = json.load(outfile)
 
             for item in working:
+                location += 1    
                 hash_id = rand_str(20)
-                print(hash_id)
+                print("  " + hash_id)
                 item_id = item['id']
                 category = item['category']
                 title = item['title']
@@ -71,6 +75,6 @@ for file in os.listdir("data"):
                 #worksheet.append_row(to_add)
                 
         #os.rename(path, path + '.done')
-
+print("Files: {}, locations: {}".format(index, location))
 with open(output_path, 'w') as outfile:
     json.dump(output, outfile)
