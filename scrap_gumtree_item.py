@@ -3,9 +3,12 @@ import re
 import json
 import time
 import os
+import config
 from bs4 import BeautifulSoup
 from random import randint
 from string import whitespace
+
+connection = config.connection
 
 headers = requests.utils.default_headers()
 headers.update({
@@ -17,27 +20,51 @@ def gumtree_link(link):
         link = "https://www.gumtree.pl" + link
     return link
 
-url = "https://www.gumtree.pl/a-mieszkania-i-domy-do-wynajecia/wroclaw/2pok-%2B-osobna-kuchnia-centrum-tramwaj-ul-krzywoustego-nowe-osiedle/1002042593450911217920709"
+with connection.cursor() as cursor:
+    sql = "SELECT `id`, `link` FROM `wroflats_submissions` WHERE `full_scrap`=0 LIMIT 1"
+    cursor.execute(sql)
+    result = cursor.fetchall()
 
-response = requests.get(url, headers=headers)
-soup = BeautifulSoup(response.content, "html.parser")
+    if result:
+        for item in result:
+            print('id: {} link: {}'.format(item['id'], item['link']))
 
-soup = soup.find("div", {"itemtype": "http://schema.org/Product"})
-gps = soup.find("span", {"class": "google-maps-link"}).get("data-uri")
-gps = gps[31:] 
-cords = gps.split(",")
-attributes = soup.find_all("div", {"class": "attribute"})
-description = soup.find("div", {"class": "description"}).text
-print(description)
+            url = item['link']
 
-print("x {}, y {}".format(cords[0], cords[1]))
+            response = requests.get(url, headers=headers)
+            soup = BeautifulSoup(response.content, "html.parser")
 
-for atr in attributes:
-    name = atr.find("span", {"class": "name"})
-    value = atr.find("span", {"class": "value"})
-    if name:
-        name = name.text
-    if value:
-        value = value.text
-    value = value.translate(dict.fromkeys(map(ord, whitespace)))
-    print("{}: {}".format(name,value))
+            soup = soup.find("div", {"itemtype": "http://schema.org/Product"})
+            gps = soup.find("span", {"class": "google-maps-link"}).get("data-uri")
+            gps = gps[31:] 
+            cords = gps.split(",")
+            attributes = soup.find_all("div", {"class": "attribute"})
+            description = soup.find("div", {"class": "description"}).text
+            pictures = soup.find("script", {"id": "vip-gallery-data"}).text
+            if pictures: 
+                pictures = json.loads(pictures)
+                if pictures['large']:
+                    pictures = pictures['large']
+                elif pictures['medium']:
+                    pictures = pictures['medium']
+                elif pictures['small']:
+                    pictures = pictures['small']
+            else:
+                pictures = ""
+
+            print(description)
+
+            print("x {}, y {}".format(cords[0], cords[1]))
+            attribute = []
+            for atr in attributes:
+                name = atr.find("span", {"class": "name"})
+                value = atr.find("span", {"class": "value"})
+                if name:
+                    name = name.text
+                if value:
+                    value = value.text
+                value = value.translate(dict.fromkeys(map(ord, whitespace)))
+                attribute.append({name: value})
+                print("{}: {}".format(name,value))
+            print(attribute)
+            print(pictures)

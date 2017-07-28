@@ -1,5 +1,7 @@
 import os
 import pymysql.cursors
+import random
+import string
 from os.path import join, dirname
 from dotenv import load_dotenv
 
@@ -14,3 +16,7 @@ connection = pymysql.connect(host=os.environ['DB_HOST'],
                              db=os.environ['DB_NAME'],
                              charset='utf8mb4',
                              cursorclass=pymysql.cursors.DictCursor)
+
+def rand_str(length):
+    return ''.join(
+        random.choice(string.ascii_uppercase) for i in range(length))
