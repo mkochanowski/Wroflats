@@ -6,6 +6,7 @@ import os
 import config
 import datetime
 import logging
+import sys
 from bs4 import BeautifulSoup
 from random import randint
 from string import whitespace
@@ -26,7 +27,7 @@ def gumtree_link(link):
 to_update = []
 cords_out = []
 with connection.cursor() as cursor:
-    sql = "SELECT `id`, `link` FROM `wroflats_submissions` ORDER BY `scrap_date` LIMIT 25"
+    sql = "SELECT `id`, `link` FROM `wroflats_submissions` ORDER BY `scrap_date` LIMIT 5"
     cursor.execute(sql)
     result = cursor.fetchall()
 
@@ -162,6 +163,11 @@ with connection.cursor() as cursor:
     print("Gmaps url: " + gmaps.url)
     dist = json.loads(gmaps.text)
     # print(dist)
+    
+    if dist['status'] == 'OVER_QUERY_LIMIT':
+        print("Google maps API quota :<")
+        sys.exit()
+
     index = 0
     for item in dist['rows']:
         item = item['elements'][0]
