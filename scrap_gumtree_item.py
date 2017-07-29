@@ -26,7 +26,7 @@ def gumtree_link(link):
 to_update = []
 cords_out = []
 with connection.cursor() as cursor:
-    sql = "SELECT `id`, `link` FROM `wroflats_submissions` WHERE `full_scrap`=0 LIMIT 25"
+    sql = "SELECT `id`, `link` FROM `wroflats_submissions` ORDER BY `scrap_date` LIMIT 25"
     cursor.execute(sql)
     result = cursor.fetchall()
 
@@ -43,18 +43,18 @@ with connection.cursor() as cursor:
             try:
                 response = requests.get(url, headers=headers)
                 soup = BeautifulSoup(response.content, "html.parser")
-
+                print(response.url)
                 f = '%Y-%m-%d %H:%M:%S'
                 scrap_date = datetime.datetime.now().strftime(f)
 
-#               check if deactivated
+                # check if deactivated
                 if soup.find("p", {"class": "error-content"}):
                     deactivated = soup.find("p", {"class": "error-content"}).text
                 elif soup.find("div", {"class": "message"}):
                     deactivated = soup.find("div", {"class": "message"}).text
                 else:
                     deactivated = ""
-                if ('oferta jest już nieaktualna' in deactivated) or ('ogłoszenie wygasło' in deactivated):
+                if ('oferta jest już nieaktualna' in deactivated) or ('ogłoszenie wygasło' in deactivated) or ('searchStatus=adExpired' in response.url):
                     with connection.cursor() as cursor:
                         print('deactivated')
                         sql = "UPDATE `wroflats_submissions` SET `deactivated`=1, `full_scrap`=1, `scrap_date`=%s WHERE `id`=%s"
@@ -78,7 +78,7 @@ with connection.cursor() as cursor:
                     pictures = soup.find("script", {"id": "vip-gallery-data"})
                     
                     if pictures: 
-                        #print(pictures.text)
+                        # print(pictures.text)
                         pictures = json.loads(pictures.text, strict=False)
                         if pictures['large']:
                             pictures = pictures['large']
@@ -89,9 +89,9 @@ with connection.cursor() as cursor:
                     else:
                         pictures = ""
 
-                    #print(description)
+                    # print(description)
 
-                    #print("x {}, y {}".format(cords[0], cords[1]))
+                    # print("x {}, y {}".format(cords[0], cords[1]))
                     attribute_out = []
                     m2 = ""
                     baths = ""
@@ -120,8 +120,8 @@ with connection.cursor() as cursor:
                         elif 'Wielkość (m2)' in name:
                             m2 = value
                     #    print("{}: {}".format(name,value))
-                    #print(attribute_out)
-                    #print(pictures)
+                    # print(attribute_out)
+                    # print(pictures)
 
                     to_update.append({
                         'id': item['id'],
@@ -145,10 +145,10 @@ with connection.cursor() as cursor:
             except Exception as e:
                 print("Exception caught, skipping")
                 logging.exception(url)
-#               with open("logs-scrap_gumtree_item.txt", "a") as myfile:
-#                   myfile.write(str(logging.exception(e)))
+                # with open("logs-scrap_gumtree_item.txt", "a") as myfile:
+                #     myfile.write(str(logging.exception(e)))
 
-    #print(cords_out)
+    # print(cords_out)
     print("51.111039,17.053092")
     origins = ""
     origins_set = True
@@ -161,13 +161,13 @@ with connection.cursor() as cursor:
     gmaps = requests.get("https://maps.googleapis.com/maps/api/distancematrix/json", params=payload)
     print("Gmaps url: " + gmaps.url)
     dist = json.loads(gmaps.text)
-    #print(dist)
+    # print(dist)
     index = 0
     for item in dist['rows']:
         item = item['elements'][0]
         if item['status'] == 'OK':
-            #print(item['duration']['text'])
-            #print(item['distance']['value'])
+            # print(item['duration']['text'])
+            # print(item['distance']['value'])
            
             to_update[index]['distance_transit'] = item['distance']['value']
             to_update[index]['distance_time'] = item['duration']['text']
@@ -182,9 +182,9 @@ for item in to_update:
             data += "`{}`=%s, ".format(i)
             values.append(str(item[i]))
 
-    #print(values)
+    # print(values)
     up_query = "UPDATE `wroflats_submissions` SET {} WHERE `id`='{}'".format(data[:-2], up_id)
-    #print(up_query)
+    # print(up_query)
 
     with connection.cursor() as cursor:
         cursor.execute(up_query, (values))

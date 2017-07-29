@@ -4,3 +4,4 @@ data
 client_secret.json
 secret.json
 .env
+__pycache__
