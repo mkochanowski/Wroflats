@@ -105,7 +105,7 @@ for index, url in enumerate(queue):
                         connection.commit()
                         print("insert {}, {}".format(hash_id, title))
                         saved += 1
-    print("cateogory: " + category)
+    print("category: " + category)
     print("saved: {}, not saved: {}".format(saved, not_saved))
     if saved > 0:
         if after:
