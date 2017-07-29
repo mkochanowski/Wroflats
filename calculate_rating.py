@@ -4,15 +4,16 @@ import datetime
 connection = config.connection
 
 with connection.cursor() as cursor:
+    #sql = "SELECT * FROM `wroflats_submissions` WHERE `id`=2429" #debug
     sql = "SELECT * FROM `wroflats_submissions` WHERE `deactivated`=0 AND `full_scrap`=1 ORDER BY `rating_date` LIMIT 100"
     cursor.execute(sql)
     result = cursor.fetchall()
     cursor.close()
     
-    # print(result)
-
+    index = 0
     for item in result:
-        print("{} {} ".format(item['id'], item['rating']))
+        index += 1
+        print("{}. id: {}, current rating: {} ".format(index, item['id'], item['rating']))
 
         # 10 points:
         # 2 - pictures
@@ -30,6 +31,7 @@ with connection.cursor() as cursor:
             pictures = len(item['pictures'])
             pictures = min(pictures, 800)
         pictures = (pictures / 800)*2
+        pictures = round(pictures, 3)
 
         # submission date
         if item['submission_date']:
@@ -37,13 +39,11 @@ with connection.cursor() as cursor:
             added = datetime.datetime.combine(item['submission_date'], datetime.time.min)
             now = datetime.datetime.combine(datetime.datetime.now(), datetime.time.min)
             subtract = now - added
+            print(subtract)
             submission_date = subtract.days
-            if submission_date == 0:
-                submission_date = 1
-            elif submission_date:
-                submission_date /= 3
-        submission_date = 4/(submission_date)
-        
+        submission_date = 4/(1+submission_date*0.25)
+        submission_date = round(submission_date, 3)
+
         # distance
         if item['distance_time']:
             if (item['distance_transit'] == 0) or (item['distance_transit'] == 1591) or ('godz' in item['distance_time']):
@@ -52,6 +52,7 @@ with connection.cursor() as cursor:
                 distance = int(item['distance_time'][:-4])
             # print("{}, {}".format(item['distance_transit'], item['distance_time']))
         distance = (61-distance)/30
+        distance = round(distance, 3)
         # print(distance)
 
         # price 
@@ -61,12 +62,16 @@ with connection.cursor() as cursor:
             price_to_m2 = (61-price_to_m2)/20
             if price_to_m2 < 0:
                 price_to_m2 = 0
+        price_to_m2 = round(price_to_m2, 3)
             #print("price: {}; m2: {}".format(item['price'], item['m2']))
         #print(price_to_m2)
 
+        # final rating
         final_rating = pictures + submission_date + distance + price_to_m2
         final_rating = round(final_rating, 3)
-        print("pictures: {}\nsubmission date: {}\ndistance: {}\nprice to m2: {}\nfinal rating: {}\n".format(pictures, submission_date, distance, price_to_m2, final_rating))
+        final_rating = max(0, final_rating) # check if <0
+        final_rating = min(10, final_rating) # check if >10
+        print("pictures: {}\nsubmission date: {}\ndistance: {}\nprice to m2: {}\nfinal rating: {}".format(pictures, submission_date, distance, price_to_m2, final_rating))
     
         with connection.cursor() as cursor:
             sql = "UPDATE `wroflats_submissions` SET `rating`=%s, `rating_date`=%s WHERE `id`=%s"
@@ -75,4 +80,4 @@ with connection.cursor() as cursor:
             cursor.execute(sql, (final_rating, rating_date, item['id']))
             connection.commit()
             cursor.close()
-            print("Ranking updated")
+            print("Ranking updated\n")
