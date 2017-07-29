@@ -44,15 +44,21 @@ with connection.cursor() as cursor:
                 response = requests.get(url, headers=headers)
                 soup = BeautifulSoup(response.content, "html.parser")
 
+                f = '%Y-%m-%d %H:%M:%S'
+                scrap_date = datetime.datetime.now().strftime(f)
+
 #               check if deactivated
-                deactivated = soup.find("p", {"class": "error-content"})
-                if deactivated:
-                    deactivated = deactivated.text
-                if 'oferta jest już nieaktualna' in deactivated:
+                if soup.find("p", {"class": "error-content"}):
+                    deactivated = soup.find("p", {"class": "error-content"}).text
+                elif soup.find("div", {"class": "message"}):
+                    deactivated = soup.find("div", {"class": "message"}).text
+                else:
+                    deactivated = ""
+                if ('oferta jest już nieaktualna' in deactivated) or ('ogłoszenie wygasło' in deactivated):
                     with connection.cursor() as cursor:
                         print('deactivated')
-                        sql = "UPDATE `wroflats_submissions` SET `deactivated`=1 WHERE `id`=%s"
-                        cursor.execute(sql, item['id'])
+                        sql = "UPDATE `wroflats_submissions` SET `deactivated`=1, `full_scrap`=1, `scrap_date`=%s WHERE `id`=%s"
+                        cursor.execute(sql, (scrap_date, item['id']))
                         connection.commit()
                 else:
                     soup = soup.find("div", {"itemtype": "http://schema.org/Product"})
@@ -90,9 +96,6 @@ with connection.cursor() as cursor:
                     m2 = ""
                     baths = ""
                     rooms = ""
-                    ts = '2013-01-12 15:27:43'
-                    f = '%Y-%m-%d %H:%M:%S'
-                    scrap_date = datetime.datetime.now().strftime(f)
                     submission_date = '0000-00-00'
                     available_date = '0000-00-00'
                     for atr in attributes:
