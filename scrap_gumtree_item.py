@@ -58,7 +58,8 @@ with connection.cursor() as cursor:
             pictures = soup.find("script", {"id": "vip-gallery-data"})
             
             if pictures: 
-                pictures = json.loads(pictures.text)
+                #print(pictures.text)
+                pictures = json.loads(pictures.text, strict=False)
                 if pictures['large']:
                     pictures = pictures['large']
                 elif pictures['medium']:
