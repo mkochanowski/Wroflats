@@ -27,7 +27,7 @@ def gumtree_link(link):
 to_update = []
 cords_out = []
 with connection.cursor() as cursor:
-    sql = "SELECT `id`, `link` FROM `wroflats_submissions` ORDER BY `scrap_date` LIMIT 5"
+    sql = "SELECT `id`, `link`, `full_scrap`, `distance_transit`, `distance_walking`, `distance_time` FROM `wroflats_submissions` WHERE `deactivated`=0 ORDER BY `scrap_date` LIMIT 25"
     cursor.execute(sql)
     result = cursor.fetchall()
 
@@ -124,33 +124,34 @@ with connection.cursor() as cursor:
                     # print(attribute_out)
                     # print(pictures)
 
-                    to_update.append({
-                        'id': item['id'],
-                        'full_desc': description,
-                        'submission_date': submission_date,
-                        'available_date': available_date,
-                        'm2': m2,
-                        'rooms': rooms,
-                        'baths': baths,
-                        'cord_x': cords[0],
-                        'cord_y': cords[1],
-                        'pictures': pictures,
-                        'attributes': attribute_out,
-                        'full_scrap': 1,
-                        'scrap_date': scrap_date,
-                        'distance_transit': 0,
-                        'distance_time': ''
-                    })
-                    cords_out.append({'x': cords[0], 'y': cords[1]})
+                    if item['full_scrap'] == 0:
+                        to_update.append({
+                            'id': item['id'],
+                            'full_desc': description,
+                            'submission_date': submission_date,
+                            'available_date': available_date,
+                            'm2': m2,
+                            'rooms': rooms,
+                            'baths': baths,
+                            'cord_x': cords[0],
+                            'cord_y': cords[1],
+                            'pictures': pictures,
+                            'attributes': attribute_out,
+                            'full_scrap': 1,
+                            'scrap_date': scrap_date,
+                            'distance_transit': 0,
+                            'distance_time': ''
+                        })
+                        cords_out.append({'x': cords[0], 'y': cords[1]})
+                    else:
+                        print("full scrap done, skipping")
             
             except Exception as e:
                 print("Exception caught, skipping")
                 logging.exception(url)
-                # with open("logs-scrap_gumtree_item.txt", "a") as myfile:
-                #     myfile.write(str(logging.exception(e)))
 
     # print(cords_out)
-    print("51.111039,17.053092")
+    # print("51.111039,17.053092")
     origins = ""
     origins_set = True
     for item in cords_out:
@@ -158,26 +159,27 @@ with connection.cursor() as cursor:
             origins += "|"
         origins += "{},{}".format(item['x'], item['y'])
 
-    payload = {'language': 'pl-PL', 'mode': 'transit', 'origins': origins, 'destinations': '51.111039,17.053092', 'key': env['GMAPS'], 'arrival_time': '1501657200'}
-    gmaps = requests.get("https://maps.googleapis.com/maps/api/distancematrix/json", params=payload)
-    print("Gmaps url: " + gmaps.url)
-    dist = json.loads(gmaps.text)
-    # print(dist)
-    
-    if dist['status'] == 'OVER_QUERY_LIMIT':
-        print("Google maps API quota :<")
-        sys.exit()
+    if cords_out:
+        payload = {'language': 'pl-PL', 'mode': 'transit', 'origins': origins, 'destinations': '51.111039,17.053092', 'key': env['GMAPS'], 'arrival_time': '1501657200'}
+        gmaps = requests.get("https://maps.googleapis.com/maps/api/distancematrix/json", params=payload)
+        print("Gmaps url: " + gmaps.url)
+        dist = json.loads(gmaps.text)
+        # print(dist)
+        
+        if dist['status'] == 'OVER_QUERY_LIMIT':
+            print("Google maps API quota :<")
+            sys.exit()
 
-    index = 0
-    for item in dist['rows']:
-        item = item['elements'][0]
-        if item['status'] == 'OK':
-            # print(item['duration']['text'])
-            # print(item['distance']['value'])
-           
-            to_update[index]['distance_transit'] = item['distance']['value']
-            to_update[index]['distance_time'] = item['duration']['text']
-        index += 1
+        index = 0
+        for item in dist['rows']:
+            item = item['elements'][0]
+            if item['status'] == 'OK':
+                # print(item['duration']['text'])
+                # print(item['distance']['value'])
+            
+                to_update[index]['distance_transit'] = item['distance']['value']
+                to_update[index]['distance_time'] = item['duration']['text']
+            index += 1
 
 for item in to_update:
     values = []
