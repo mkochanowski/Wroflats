@@ -55,9 +55,9 @@ class Token(Resource):
             cursor.execute(sql, token)
             result = cursor.fetchone()
             if result:
-                return {}, 200
+                return {'status': 'ok'}
             else:
-                return {}, 401
+                return {'status': 'failed'}
 
 class Authorize(Resource):
     def post(self):
@@ -83,9 +83,9 @@ class Authorize(Resource):
                     connection.commit()       
                 cursor.close()
 
-                return token
+                return {'status': 'ok', 'token': token }
             else:
-                return {}, 401
+                return {'status': 'failed'}
 
 api.add_resource(Submission, '/submissions/<string:hash>')
 api.add_resource(SubmissionsIndex, '/submissions/')
