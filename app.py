@@ -31,7 +31,7 @@ class Index(Resource):
 class SubmissionsIndex(Resource):
     def get(self):
         with connection.cursor() as cursor:
-            sql = "SELECT * FROM `wroflats_submissions` WHERE `deactivated`=0 ORDER BY `rating` DESC LIMIT 5"
+            sql = "SELECT * FROM `wroflats_submissions` WHERE `deactivated`=0 ORDER BY `rating` DESC LIMIT 30"
             cursor.execute(sql)
             result = cursor.fetchall()
             cursor.close()
