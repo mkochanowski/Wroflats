@@ -31,7 +31,7 @@ class Index(Resource):
 class SubmissionsIndex(Resource):
     def get(self):
         with connection.cursor() as cursor:
-            sql = "SELECT * FROM `wroflats_submissions` WHERE `deactivated`=0 ORDER BY `rating` DESC LIMIT 30"
+            sql = "SELECT * FROM `wroflats_submissions` WHERE `deactivated`=0 ORDER BY `rating` DESC LIMIT 60"
             cursor.execute(sql)
             result = cursor.fetchall()
             cursor.close()
@@ -55,7 +55,10 @@ class Token(Resource):
             cursor.execute(sql, token)
             result = cursor.fetchone()
             if result:
-                return {'status': 'ok'}
+                sql = "SELECT `name` FROM `wroflats_users` WHERE `id`=%s LIMIT 1"
+                cursor.execute(sql, result['user_id'])
+                result = cursor.fetchone()
+                return {'status': 'ok', 'name': result['name']}
             else:
                 return {'status': 'failed'}
 
