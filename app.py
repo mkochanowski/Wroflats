@@ -43,21 +43,54 @@ class Submission(Resource):
         with connection.cursor() as cursor:
             sql = "SELECT * FROM `wroflats_submissions` WHERE `hash`=%s LIMIT 1"
             cursor.execute(sql, hash)
-            result = cursor.fetchall()
+            result = cursor.fetchone()
             cursor.close()
 
             return result
 
-class Authorize(Resource):
-    def get(self):
-        return request.form
+class Token(Resource):
+    def get(self, token):
+        with connection.cursor() as cursor:
+            sql = "SELECT * FROM `wroflats_tokens` WHERE `token`=%s ORDER BY `created_date` DESC LIMIT 1"
+            cursor.execute(sql, token)
+            result = cursor.fetchone()
+            if result:
+                return {}, 200
+            else:
+                return {}, 401
 
+class Authorize(Resource):
     def post(self):
-        return request.form
+        pin = request.form['pin']
+        with connection.cursor() as cursor:
+            sql = "SELECT `id` FROM `wroflats_users` WHERE `access_code`=%s LIMIT 1"
+            cursor.execute(sql, pin)
+            result = cursor.fetchone()
+
+            if result: 
+                user_id = result['id']
+                sql = "SELECT * FROM `wroflats_tokens` WHERE `user_id`=%s ORDER BY `created_date` DESC LIMIT 1"
+                cursor.execute(sql, user_id)
+                result = cursor.fetchone()
+
+                print(result)
+                if result:
+                    token = result['token']
+                else:
+                    token = config.rand_str(20)
+                    sql = "INSERT INTO `wroflats_tokens` (`user_id`, `token`) VALUES (%s, %s)"
+                    cursor.execute(sql, (user_id, token))
+                    connection.commit()       
+                cursor.close()
+
+                return token
+            else:
+                return {}, 401
 
 api.add_resource(Submission, '/submissions/<string:hash>')
 api.add_resource(SubmissionsIndex, '/submissions/')
 api.add_resource(Authorize, '/auth/')
+api.add_resource(Token, '/token/<string:token>')
 api.add_resource(Index, '/')
 
 if __name__ == '__main__':
