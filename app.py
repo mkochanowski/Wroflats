@@ -24,18 +24,41 @@ def datetime_handler(x):
         return x.isoformat()
     raise TypeError("Unknown type")
 
-class Submissions(Resource):
+class Index(Resource):
+    def get(self):
+        return 'wroflats made by Marek Kochanowski'
+
+class SubmissionsIndex(Resource):
     def get(self):
         with connection.cursor() as cursor:
-            sql = "SELECT * FROM `wroflats_submissions` WHERE `deactivated`=0 ORDER BY `rating` DESC LIMIT 5"
+            sql = "SELECT `hash`, `rating`, `title`, `price`, `link` FROM `wroflats_submissions` WHERE `deactivated`=0 ORDER BY `rating` DESC LIMIT 5"
             cursor.execute(sql)
             result = cursor.fetchall()
             cursor.close()
 
             return result
 
-#api.add_resource(Test, '/submissions/<string:name>')
-api.add_resource(Submissions, '/submissions')
+class Submission(Resource):
+    def get(self, hash):
+        with connection.cursor() as cursor:
+            sql = "SELECT * FROM `wroflats_submissions` WHERE `hash`=%s LIMIT 1"
+            cursor.execute(sql, hash)
+            result = cursor.fetchall()
+            cursor.close()
+
+            return result
+
+class Authorize(Resource):
+    def get(self):
+        return request.form
+
+    def post(self):
+        return request.form
+
+api.add_resource(Submission, '/submissions/<string:hash>')
+api.add_resource(SubmissionsIndex, '/submissions/')
+api.add_resource(Authorize, '/auth/')
+api.add_resource(Index, '/')
 
 if __name__ == '__main__':
     app.run(debug=True)
