@@ -61,7 +61,7 @@ class Token(Resource):
 
 class Authorize(Resource):
     def post(self):
-        pin = request.form['pin']
+        pin = request.json['pin']
         with connection.cursor() as cursor:
             sql = "SELECT `id` FROM `wroflats_users` WHERE `access_code`=%s LIMIT 1"
             cursor.execute(sql, pin)
