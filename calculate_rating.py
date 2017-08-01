@@ -5,7 +5,7 @@ connection = config.connect()
 
 with connection.cursor() as cursor:
     #sql = "SELECT * FROM `wroflats_submissions` WHERE `id`=2429" #debug
-    sql = "SELECT * FROM `wroflats_submissions` WHERE `deactivated`=0 AND `full_scrap`=1 ORDER BY `rating_date` LIMIT 200"
+    sql = "SELECT * FROM `wroflats_submissions` WHERE `deactivated`=0 AND `full_scrap`=1 ORDER BY `rating_date` LIMIT 500"
     cursor.execute(sql)
     result = cursor.fetchall()
     cursor.close()
