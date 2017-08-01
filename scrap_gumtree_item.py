@@ -11,7 +11,7 @@ from bs4 import BeautifulSoup
 from random import randint
 from string import whitespace
 
-connection = config.connection
+connection = config.connect()
 env = config.os.environ
 headers = requests.utils.default_headers()
 headers.update({
@@ -199,3 +199,4 @@ for item in to_update:
         connection.commit()
     
 print("Updated")
+connection.close()

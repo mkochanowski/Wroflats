@@ -7,7 +7,7 @@ import config
 from bs4 import BeautifulSoup
 from random import randint
 
-connection = config.connection
+connection = config.connect()
 
 headers = requests.utils.default_headers()
 headers.update({
@@ -116,3 +116,4 @@ for index, url in enumerate(queue):
 #   with open(path, 'w') as outfile:
 #       json.dump(listing, outfile)
 
+connection.close()

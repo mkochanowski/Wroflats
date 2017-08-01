@@ -1,11 +1,11 @@
 import config
 import datetime
 
-connection = config.connection
+connection = config.connect()
 
 with connection.cursor() as cursor:
     #sql = "SELECT * FROM `wroflats_submissions` WHERE `id`=2429" #debug
-    sql = "SELECT * FROM `wroflats_submissions` WHERE `deactivated`=0 AND `full_scrap`=1 ORDER BY `rating_date` LIMIT 100"
+    sql = "SELECT * FROM `wroflats_submissions` WHERE `deactivated`=0 AND `full_scrap`=1 ORDER BY `rating_date` LIMIT 200"
     cursor.execute(sql)
     result = cursor.fetchall()
     cursor.close()
@@ -68,10 +68,11 @@ with connection.cursor() as cursor:
 
         # final rating
         final_rating = pictures + submission_date + distance + price_to_m2
+        final_rating *= item['rating_modifier']
         final_rating = round(final_rating, 3)
         final_rating = max(0, final_rating) # check if <0
         final_rating = min(10, final_rating) # check if >10
-        print("pictures: {}\nsubmission date: {}\ndistance: {}\nprice to m2: {}\nfinal rating: {}".format(pictures, submission_date, distance, price_to_m2, final_rating))
+        print("pictures: {}\nsubmission date: {}\ndistance: {}\nprice to m2: {}\nrating modifier: {}\nfinal rating: {}".format(pictures, submission_date, distance, price_to_m2, item['rating_modifier'], final_rating))
     
         with connection.cursor() as cursor:
             sql = "UPDATE `wroflats_submissions` SET `rating`=%s, `rating_date`=%s WHERE `id`=%s"
@@ -81,3 +82,5 @@ with connection.cursor() as cursor:
             connection.commit()
             cursor.close()
             print("Ranking updated\n")
+
+connection.close()
