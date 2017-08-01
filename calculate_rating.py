@@ -17,8 +17,8 @@ with connection.cursor() as cursor:
 
         # 10 points:
         # 2 - pictures
-        # 4 - submission date
-        # 2 - short distance 
+        # 3 - submission date
+        # 3 - short distance 
         # 2 - price to m2
 
         pictures = 1
@@ -41,7 +41,7 @@ with connection.cursor() as cursor:
             subtract = now - added
             print(subtract)
             submission_date = subtract.days
-        submission_date = 4/(1+submission_date*0.25)
+        submission_date = 3/(1+submission_date*0.25)
         submission_date = round(submission_date, 3)
 
         # distance
@@ -51,7 +51,7 @@ with connection.cursor() as cursor:
             else:
                 distance = int(item['distance_time'][:-4])
             # print("{}, {}".format(item['distance_transit'], item['distance_time']))
-        distance = (61-distance)/30
+        distance = (61-distance)/20
         distance = round(distance, 3)
         # print(distance)
 
