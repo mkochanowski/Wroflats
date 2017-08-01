@@ -2,7 +2,7 @@ import config
 import json
 import datetime
 from flask import Flask, request, make_response, g
-from flask_restful import Resource, Api
+from flask_restful import Resource, Api, reqparse
 from json import dumps
 from werkzeug.contrib.cache import SimpleCache
 
@@ -64,13 +64,31 @@ class Index(Resource):
 
 class SubmissionsIndex(Resource):
     def get(self):
-        page = 1
-        cname = "submissions-p{}".format(page)
+        parser = reqparse.RequestParser()
+        parser.add_argument('categories', default='flats', required=False, type=str)
+        parser.add_argument('page', default=1, required=False, type=int)
+        args = parser.parse_args()
         
+        page = args['page']-1
+
+        if args['categories'] == 'all':
+            categories = ''
+        elif args['categories'] == 'flats':
+            categories = "AND `category`='gumtree-flats' "
+        elif args['categories'] == 'rooms':
+            categories = "AND `category`='gumtree-rooms' "
+
+        cname = "submissions-p{}-c{}".format(page, categories)
+        
+        pagination = ""
+        if page>0:
+            pagination = "{}, ".format(page*30)
+
         rv = cache.get(cname)
+        #rv = None
         if rv is None:
             with g.db.cursor() as cursor:
-                sql = "SELECT * FROM `wroflats_submissions` WHERE `deactivated`=0 ORDER BY `rating` DESC LIMIT 30"
+                sql = "SELECT * FROM `wroflats_submissions` WHERE `deactivated`=0 {}ORDER BY `rating` DESC LIMIT {}30".format(categories, pagination)
                 cursor.execute(sql)
                 result = cursor.fetchall()
                 cursor.close()
