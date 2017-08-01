@@ -1,5 +1,5 @@
 #! /bin/bash    
-cd /home/marek/wroflats
+cd /usr/local/bin/scraping/wroflats
 source venv/bin/activate
 
 python3 scrap_gumtree.py

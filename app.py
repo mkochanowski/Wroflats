@@ -4,12 +4,14 @@ import datetime
 from flask import Flask, request, make_response, g
 from flask_restful import Resource, Api
 from json import dumps
+from werkzeug.contrib.cache import SimpleCache
 
 print("app.py initialize")
 #connection = config.connection
 
 app = Flask(__name__)
 api = Api(app)
+cache = SimpleCache()
 
 @api.representation('application/json')
 def output_json(data, code, headers=None):
@@ -62,23 +64,36 @@ class Index(Resource):
 
 class SubmissionsIndex(Resource):
     def get(self):
-        with g.db.cursor() as cursor:
-            sql = "SELECT * FROM `wroflats_submissions` WHERE `deactivated`=0 ORDER BY `rating` DESC LIMIT 60"
-            cursor.execute(sql)
-            result = cursor.fetchall()
-            cursor.close()
+        page = 1
+        cname = "submissions-p{}".format(page)
+        
+        rv = cache.get(cname)
+        if rv is None:
+            with g.db.cursor() as cursor:
+                sql = "SELECT * FROM `wroflats_submissions` WHERE `deactivated`=0 ORDER BY `rating` DESC LIMIT 30"
+                cursor.execute(sql)
+                result = cursor.fetchall()
+                cursor.close()
 
-            return result
+                rv = result
+                cache.set(cname, rv, timeout=30)
+        return rv
 
 class Submission(Resource):
     def get(self, hash):
-        with g.db.cursor() as cursor:
-            sql = "SELECT * FROM `wroflats_submissions` WHERE `hash`=%s LIMIT 1"
-            cursor.execute(sql, hash)
-            result = cursor.fetchone()
-            cursor.close()
-
-            return result
+        cname = "submission-{}".format(hash)
+        
+        rv = cache.get(cname)
+        if rv is None:
+            with g.db.cursor() as cursor:
+                sql = "SELECT * FROM `wroflats_submissions` WHERE `hash`=%s LIMIT 1"
+                cursor.execute(sql, hash)
+                result = cursor.fetchone()
+                cursor.close()
+                
+                rv = result
+                cache.set(cname, rv, timeout=30)
+        return rv  
 
 class Token(Resource):
     def get(self, token):
