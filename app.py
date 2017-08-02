@@ -94,7 +94,7 @@ class SubmissionsIndex(Resource):
                 cursor.close()
 
                 rv = result
-                cache.set(cname, rv, timeout=30)
+                cache.set(cname, rv, timeout=10)
         return rv
 
 class Submission(Resource):
@@ -127,6 +127,21 @@ class Token(Resource):
             else:
                 return {'status': 'failed'}
 
+class Action(Resource):
+    def post(self):
+        data = request.json
+        if data['hash']:
+            with g.db.cursor() as cursor:
+                if data['action'] == 'hide':
+                    sql = "UPDATE `wroflats_submissions` SET `rating`=0, `rating_modifier`=0 WHERE `hash`=%s"
+                    cursor.execute(sql, data['hash'])
+                elif data['action'] == 'save':
+                    sql = "UPDATE `wroflats_submissions` SET `rating`=10, `rating_modifier`=10, `favorite`=1 WHERE `hash`=%s"
+                    cursor.execute(sql, data['hash'])
+                g.db.commit()
+
+        return {'status': 'done'}
+
 class Authorize(Resource):
     def post(self):
         pin = request.json['pin']
@@ -157,6 +172,7 @@ class Authorize(Resource):
 
 api.add_resource(Submission, '/submissions/<string:hash>')
 api.add_resource(SubmissionsIndex, '/submissions/')
+api.add_resource(Action, '/action/')
 api.add_resource(Authorize, '/auth/')
 api.add_resource(Token, '/token/<string:token>')
 api.add_resource(Index, '/')
