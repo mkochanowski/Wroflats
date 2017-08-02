@@ -129,15 +129,14 @@ class Token(Resource):
 
 class Action(Resource):
     def post(self):
-        data = request.json
-        if data['hash']:
+        if request.json['hash']:
             with g.db.cursor() as cursor:
-                if data['action'] == 'hide':
+                if request.json['action'] == 'hide':
                     sql = "UPDATE `wroflats_submissions` SET `rating`=0, `rating_modifier`=0, `deactivated`=1 WHERE `hash`=%s"
-                    cursor.execute(sql, data['hash'])
-                elif data['action'] == 'save':
+                    cursor.execute(sql, request.json['hash'])
+                elif request.json['action'] == 'save':
                     sql = "UPDATE `wroflats_submissions` SET `rating`=10, `rating_modifier`=10, `favorite`=1 WHERE `hash`=%s"
-                    cursor.execute(sql, data['hash'])
+                    cursor.execute(sql, request.json['hash'])
                 g.db.commit()
 
         return {'status': 'done'}
