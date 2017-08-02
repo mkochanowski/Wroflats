@@ -133,7 +133,7 @@ class Action(Resource):
         if data['hash']:
             with g.db.cursor() as cursor:
                 if data['action'] == 'hide':
-                    sql = "UPDATE `wroflats_submissions` SET `rating`=0, `rating_modifier`=0 WHERE `hash`=%s"
+                    sql = "UPDATE `wroflats_submissions` SET `rating`=0, `rating_modifier`=0, `deactivated`=1 WHERE `hash`=%s"
                     cursor.execute(sql, data['hash'])
                 elif data['action'] == 'save':
                     sql = "UPDATE `wroflats_submissions` SET `rating`=10, `rating_modifier`=10, `favorite`=1 WHERE `hash`=%s"
