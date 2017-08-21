@@ -103,7 +103,7 @@ class SubmissionsIndex(Resource):
         #rv = None
         if rv is None:
             with g.db.cursor() as cursor:
-                sql = "SELECT * FROM `wroflats_submissions` WHERE `deactivated`=0 AND `price` <= 2200 {}ORDER BY `rating` DESC LIMIT {}30".format(categories, pagination)
+                sql = "SELECT * FROM `wroflats_submissions` WHERE `deactivated`=0 AND `submission_date` >= '2017-08-20' AND `price` <= 800 {}ORDER BY `rating` DESC LIMIT {}30".format(categories, pagination)
                 cursor.execute(sql)
                 result = cursor.fetchall()
                 cursor.close()
