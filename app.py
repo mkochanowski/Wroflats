@@ -62,6 +62,21 @@ class Index(Resource):
     def get(self):
         return 'wroflats made by Marek Kochanowski'
 
+class LocationsIndex(Resource):
+    def get(self):
+        cname = 'locations'
+        rv = cache.get(cname)
+        if rv is None:
+            with g.db.cursor() as cursor:
+                sql = "SELECT `id`, `hash`, `cord_x`, `cord_y`, `price`, `title`, `short_desc` FROM `wroflats_submissions` WHERE `deactivated`=0 AND `cord_x` > 0 AND `cord_y` > 0 AND `price` <= 800 AND `submission_date` >= '2017-08-20'"
+                cursor.execute(sql)
+                result = cursor.fetchall()
+                cursor.close()
+
+                rv = result
+                cache.set(cname, rv, timeout=10)
+        return rv 
+
 class SubmissionsIndex(Resource):
     def get(self):
         parser = reqparse.RequestParser()
@@ -171,6 +186,7 @@ class Authorize(Resource):
 
 api.add_resource(Submission, '/submissions/<string:hash>')
 api.add_resource(SubmissionsIndex, '/submissions/')
+api.add_resource(LocationsIndex, '/locations/')
 api.add_resource(Action, '/action/')
 api.add_resource(Authorize, '/auth/')
 api.add_resource(Token, '/token/<string:token>')
