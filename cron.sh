@@ -3,6 +3,7 @@ cd /home/marek/wroflats
 source venv/bin/activate
 
 python3 scrap_olx.py
+python3 scrap_olx_item.py
 python3 scrap_gumtree.py
 python3 scrap_gumtree_item.py
 python3 duplicate_punisher.py
