@@ -27,7 +27,7 @@ def gumtree_link(link):
 to_update = []
 cords_out = []
 with connection.cursor() as cursor:
-    sql = "SELECT `id`, `link`, `full_scrap`, `distance_transit`, `distance_walking`, `distance_time` FROM `wroflats_submissions` WHERE `deactivated`=0 ORDER BY `scrap_date` LIMIT 25"
+    sql = "SELECT `id`, `link`, `full_scrap`, `distance_transit`, `distance_walking`, `distance_time` FROM `wroflats_submissions` WHERE `deactivated`=0 AND `category` LIKE '%gumtree%' ORDER BY `scrap_date` LIMIT 25"
     cursor.execute(sql)
     result = cursor.fetchall()
 
