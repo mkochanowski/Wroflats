@@ -149,7 +149,7 @@ with connection.cursor() as cursor:
             except Exception as e:
                 print("Exception caught, skipping")
                 logging.exception(url)
-
+    '''
     # print(cords_out)
     # print("51.111039,17.053092")
     origins = ""
@@ -180,7 +180,7 @@ with connection.cursor() as cursor:
                 to_update[index]['distance_transit'] = item['distance']['value']
                 to_update[index]['distance_time'] = item['duration']['text']
             index += 1
-
+    '''
 for item in to_update:
     values = []
     up_id = item['id']
