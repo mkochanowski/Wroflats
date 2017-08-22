@@ -55,13 +55,15 @@ with connection.cursor() as cursor:
                 print(cords)
                 f = '%Y-%m-%d %H:%M:%S'
                 scrap_date = datetime.datetime.now().strftime(f)
+                sub_date = datetime.datetime.now().strftime('%Y-%m-%d')
                 if item['full_scrap'] == 0:
                     to_update.append({
                         'id': item['id'],
                         'cord_x': cords[0],
                         'cord_y': cords[1],
                         'full_scrap': 1,
-                        'scrap_date': scrap_date
+                        'scrap_date': scrap_date,
+                        'submission_date': sub_date
                     })
                 else:
                     print("full scrap done, skipping")
