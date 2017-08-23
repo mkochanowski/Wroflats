@@ -68,7 +68,7 @@ class LocationsIndex(Resource):
         rv = cache.get(cname)
         if rv is None:
             with g.db.cursor() as cursor:
-                sql = "SELECT `category`, `id`, `hash`, `cord_x`, `cord_y`, `price`, `title`, `short_desc`, `link`, `thumbnail`, `favorite` FROM `wroflats_submissions` WHERE `deactivated`=0 AND `category` LIKE '%rooms%' AND `cord_x` > 0 AND `cord_y` > 0 AND `price` <= 800 AND `submission_date` >= '2017-08-20'"
+                sql = "SELECT `category`, `id`, `hash`, `cord_x`, `cord_y`, `price`, `title`, `short_desc`, `link`, `thumbnail`, `favorite`, `submission_date` FROM `wroflats_submissions` WHERE `deactivated`=0 AND `category` LIKE '%rooms%' AND `cord_x` > 0 AND `cord_y` > 0 AND `price` <= 800 AND `submission_date` >= '2017-08-20'"
                 cursor.execute(sql)
                 result = cursor.fetchall()
                 cursor.close()
