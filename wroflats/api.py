@@ -2,9 +2,6 @@ from flask import Flask, json
 from flask_restful import Resource, Api
 from flask_migrate import Migrate
 from flask_marshmallow import Marshmallow
-from sqlalchemy.ext.declarative import DeclarativeMeta
-
-# from utils.json_encoder import CustomJSONEncoder
 
 app = Flask(__name__)
 app.config.from_pyfile("config.py")
@@ -13,6 +10,8 @@ from resources import *
 
 migrate = Migrate(app, db)
 api = Api(app)
+
+from tasks import *
 
 class Index(Resource):
     project_repository = "https://github.com/mkochanowski/wroflats/"
@@ -26,7 +25,7 @@ class Index(Resource):
 
 api.add_resource(SubmissionsSingle, '/submissions/<int:identifier>')
 api.add_resource(SubmissionsIndex, '/submissions')
-api.add_resource(AreasCheck, '/areas/<string:category>/<string:coordinates>')
+# api.add_resource(AreasCheck, '/areas/<string:category>/<string:coordinates>')
 # api.add_resource(AreasFiltered, '/areas/<string:category>')
 api.add_resource(AreasSingle, '/areas/<int:identifier>')
 api.add_resource(AreasIndex, '/areas')

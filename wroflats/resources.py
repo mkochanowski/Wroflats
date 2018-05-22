@@ -7,9 +7,18 @@ parser = reqparse.RequestParser()
 class Helper:
     @staticmethod
     def normalize_coordinates(coordinates: tuple) -> tuple:
+        """Takes coordinates and normalizes them into a normalized pair of coordinates.
+        
+        :param coordinates: pair of coordinates provided from the source.
+        :return: a new pair of coordinates"""
         return coordinates
 
     def get_or_create_coordinates(self, coordinates: tuple) -> int:
+        """Retrieves an already existing instance of Coordinates or creates a new one.
+        
+        :param coordinates: pair of coordinates provided from source.
+        :return: identifier of given Coordinates.
+        """
         coordinates = self.normalize_coordinates(coordinates)
         lat, lng = coordinates
         search = Coordinates.query.filter_by(latitude=lat, longitude=lng).first()
@@ -32,7 +41,7 @@ class SubmissionsIndex(Resource):
     schema = SubmissionSchema()
 
     def get(self):
-        """Retrieved a list of all submissions."""
+        """Retrieves a list of all submissions."""
         submissions = Submission.query.all()
         if submissions:
             return self.schema.dump(submissions, many=True).data
@@ -175,9 +184,11 @@ class UsersSingle(Resource):
         return { "info": "user does not exist" }
 
 class GroupsIndex(Resource):
+    """Operates on all available groups."""
     schema = GroupSchema()
     
     def get(self):
+        """Retrieves a list of groups."""
         groups = Group.query.all()
 
         if groups:
@@ -185,6 +196,7 @@ class GroupsIndex(Resource):
         return { "info": "no groups" }
 
     def post(self):
+        """Adds a new group."""
         new_group = Group(
             title=request.json["title"],
             owner_id=request.json["owner_id"]
@@ -196,7 +208,9 @@ class GroupsIndex(Resource):
         return self.schema.dump(new_group).data
 
 class GroupsSingle(Resource):
+    """Operate on a single group."""
     def get(self, identifier: int):
+        """Retrieves the data of the requested group."""
         schema = GroupSchema()
         group = Group.query.filter_by(id=identifier).first()
 
